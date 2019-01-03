@@ -91,3 +91,4 @@ ENV/
 # current project
 weibo/data/classify
 *.csv
+*[0-9].txt
