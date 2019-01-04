@@ -19,7 +19,7 @@ def multi_wordcloud():
     # 分类目录、分词目录、词云目录
     classify_dir = './classify'
     fenci_dir = './fenci'
-    wc_image_dir = './wciamge'
+    wc_image_dir = './wcimage'
 
     # 遍历分类后的数据集
     for root_dir, alldirs, allfiles in os.walk(path.join(cur_dir, classify_dir)):
@@ -50,7 +50,7 @@ def generate_wordcloud(data_filename, fenci_filename, wc_image_filename):
 
         # 通过词频获取关键字
         for text in data_file.readlines(100000):
-            data.extend(jieba.analyse.extract_tags(text, topK=40))
+            data.extend(jieba.cut(text, cut_all=False, HMM=True))
         data = ' '.join(data)
         # 将分词后的数据存入相应文件
         with codecs.open(path.join(cur_dir, fenci_filename), 'w', encoding='UTF-8') as fenci_file:
@@ -59,6 +59,7 @@ def generate_wordcloud(data_filename, fenci_filename, wc_image_filename):
         # 生成词云
         word_cloud = WordCloud(font_path=wcfont_path).generate(data)
 
+        print(wc_image_filename)
         # 词云显示
         #mplfont = mpl.font_manager.FontProperties(fname=mplfont_path)
         #mpl.rcParams['axes.unicode_minus'] = False
