@@ -7,10 +7,13 @@ import codecs
 import json
 import jieba
 import numpy
+import os
+import re
 import time
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from collections import Counter
+from os import path
 from PIL import Image
 from wordcloud import WordCloud
 
@@ -125,19 +128,34 @@ def cut_word_and_wordcloud(data_filepath, cut_words_filepath, word_dict_filepath
     display_wordcloud(word_cloud, mpl_font_path)
 
 
+# 多文件生成词云
+def multi_wordcloud():
+    # 分类目录、分词目录、词云目录
+    classify_dir = './classify'
+    cut_words_dir = './cut_words'
+    wc_image_dir = './wcimage'
+    mask_filepath = './alice_mask.png'
+    
+    # 遍历分类后的数据集
+    for root_dir, alldirs, allfiles in os.walk(classify_dir):
+        for afile in allfiles:
+            print_info('处理' + afile + '中...')
+            match = re.search(r'\d{4}-\d{2}-\d{2}', afile)
+            # 分类子目录-数据集文件名
+            data_filepath = root_dir + os.sep + afile
+            # 分词子目录-分词文件名
+            cut_words_filepath = cut_words_dir + os.sep + match.group(0) + '.txt'
+            # 词频
+            word_dict_filepath = cut_words_dir + os.sep + match.group(0) + '.json'
+            # 词云子目录-词云图文件名
+            wc_image_filepath = wc_image_dir + os.sep + match.group(0) + '.jpg'
+
+            # 分词、生成词云图
+            cut_word_and_wordcloud(data_filepath, cut_words_filepath, word_dict_filepath, wc_image_filepath, mask_filepath)
+
+
 # 主程序
 if __name__ == '__main__':
     print_info('Main process...')
-    # 数据集路径
-    mask_filepath = './alice_mask.png'
-    # data_filepath = './classify/YunNan_weibo_2017-08-08.txt'
-    # cut_words_filepath = './cut_words/分词并去除基本停用词_2017-08-08.txt'
-    # word_dict_filepath = './cut_words/词频_2017-08-08.json'
-    # wc_image_filepath = './wcimage/YunNan_weibo_2017-08-08.jpg'
-    
-    data_filepath = './classify/YunNan_weibo_2017-11-05.txt'
-    cut_words_filepath = './cut_words/分词并去除基本停用词_2017-11-05.txt'
-    word_dict_filepath = './cut_words/词频_2017-11-05.json'
-    wc_image_filepath = './wcimage/YunNan_weibo_2017-11-05.jpg'
+    multi_wordcloud()
 
-    cut_word_and_wordcloud(data_filepath, cut_words_filepath, word_dict_filepath, wc_image_filepath, mask_filepath)
