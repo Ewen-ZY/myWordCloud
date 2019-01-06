@@ -1,16 +1,63 @@
-<html>
-    <head>
-        <meta charset="utf-8">
-        <title>每日微博词云</title>
-    </head>
-    <div>
-        <img src="data:;base64,{{ img_stream }}">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>瀑布流布局</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        .clearfix:after,
+        .clearfix:before {
+            content: " ";
+            display: table;
+        }
+
+        .clearfix:after {
+            clear: both;
+        }
+
+        .main {
+            position: relative;
+            width: 400px;
+            -webkit-column-width: 400px;
+            -moz-column-width: 400px;
+            -webkit-column-gap: 5px;
+            -moz-column-gap: 5px;
+        }
+
+        .box {
+            float: left;
+            padding: 10px 0 0 10px;
+        }
+
+        .box .pic {
+            width: 400px;
+            height: auto;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px #cccccc;
+            border: 1px solid #cccccc;
+        }
+
+        .box .pic img {
+            display: block;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+<div class="main clearfix" id="main">
+    {% for im_name in im_names %}
+    <div class="box">
+        <div class="pic">
+            <h4>{{ im_name }}</h4>
+            <img src="../static/image/{{ im_name }}.jpg">
+        </div>
     </div>
-    <div>
-        {% for wcname in wcnames %}
-        <form action="/wc/{{ wcname }}" method="get">
-            <button type="submit">{{ wcname }}</button>
-        </form>
-        {% endfor %}
-    </div>
+    {% endfor %}
+</div>
+</body>
 </html>
