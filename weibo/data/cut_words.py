@@ -13,7 +13,6 @@ import time
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from collections import Counter
-from os import path
 from PIL import Image
 from wordcloud import WordCloud
 
@@ -38,6 +37,16 @@ def load_stopwords(filepath):
     return stopwords
 
 
+# 去除特殊字符串
+def clean_text(text):
+    # 去除URL字符串
+    print_info('Clean URLs...')
+    url_regex = r'https?://[a-zA-Z]+.[a-zA-Z]+/[0-9a-zA-Z]+'
+    url_pattern = re.compile(url_regex)
+    text = re.sub(url_pattern, ',', text)
+    return text
+
+
 # 分词
 def cut_words(data_filepath, stopwords):
     print_info('Cutting words...')
@@ -47,6 +56,8 @@ def cut_words(data_filepath, stopwords):
     with codecs.open(data_filepath, 'r', encoding='UTF-8') as data_file:
         text = data_file.read()
 
+        # 去除特殊字符串
+        text = clean_text(text)
         # 分词
         seg_list = jieba.cut(text, cut_all=False)
 
@@ -67,6 +78,9 @@ def wordcount(cut_words_filepath):
         seg_list = jieba.cut(text, cut_all=False)
         word_dict = dict(Counter(seg_list))
         word_dict.pop(' ')
+        # 将字典按值逆序排序
+        word_dict_list = sorted(word_dict.items(), key=lambda item: item[1], reverse=True)
+        word_dict = dict(word_dict_list)
     return word_dict if word_dict is not None else {}
 
 
@@ -76,7 +90,6 @@ def generate_wordcloud(word_dict, wcfont_path, mask_filepath):
 
     # 生成mask
     mask = numpy.array(Image.open(mask_filepath, 'r'))
-    # mask = plt.imread(mask_filepath)
 
     # 生成词云
     word_cloud = WordCloud(font_path=wcfont_path, background_color='white', max_font_size=2000,
@@ -94,7 +107,7 @@ def display_wordcloud(word_cloud, mpl_font_path):
     mpl.rcParams['axes.unicode_minus'] = False
 
     # 显示词云
-    # plt.title('微博文本词云', fontproperties=mpl_font, fontsize=30)
+    plt.title('微博文本词云', fontproperties=mpl_font, fontsize=30)
     plt.imshow(word_cloud, interpolation="bilinear")
     # 是否显示x、y轴
     plt.axis('off')
@@ -125,7 +138,7 @@ def cut_word_and_wordcloud(data_filepath, cut_words_filepath, word_dict_filepath
     # 保存词云
     word_cloud.to_file(wc_image_filepath)
     # 显示词云
-    display_wordcloud(word_cloud, mpl_font_path)
+    # display_wordcloud(word_cloud, mpl_font_path)
 
 
 # 多文件生成词云
@@ -151,7 +164,9 @@ def multi_wordcloud():
             wc_image_filepath = wc_image_dir + os.sep + match.group(0) + '.jpg'
 
             # 分词、生成词云图
-            cut_word_and_wordcloud(data_filepath, cut_words_filepath, word_dict_filepath, wc_image_filepath, mask_filepath)
+            cut_word_and_wordcloud(data_filepath, cut_words_filepath,
+                                   word_dict_filepath, wc_image_filepath,
+                                   mask_filepath)
 
 
 # 主程序
