@@ -37,6 +37,19 @@ def load_stopwords(filepath):
     return stopwords
 
 
+# 加载同义词表
+def load_synonyms_dict(filepath):
+    print_info('Loading synonyms...')
+    synonyms_dict = {}
+    split_regex = r' *, *'
+    split_pattern = re.compile(split_regex)
+    for line in codecs.open(filepath, 'r', encoding='UTF-8').readlines():
+        synonyms = re.split(split_pattern, line.strip())
+        for word in synonyms:
+            synonyms_dict[word] = synonyms[0]
+    return synonyms_dict
+
+
 # 去除特殊字符串
 def clean_text(text):
     # 去除URL字符串
@@ -44,11 +57,21 @@ def clean_text(text):
     url_regex = r'https?://[a-zA-Z]+.[a-zA-Z]+/[0-9a-zA-Z]+'
     url_pattern = re.compile(url_regex)
     text = re.sub(url_pattern, ',', text)
+
+    # 去除#
+    print_info('Clean ##...')
+    text = text.replace('#', '')
+
+    # 去除数字和字母
+    print_info('Clean digits and letters...')
+    digit_letter_regex = r'[0-9a-zA-Z]+'
+    digit_letter_pattern = re.compile(digit_letter_regex)
+    text = re.sub(digit_letter_pattern, ',', text)
     return text
 
 
 # 分词
-def cut_words(data_filepath, stopwords):
+def cut_words(data_filepath, stopwords, synonyms_dict, userdict_filepath):
     print_info('Cutting words...')
     outstr = ''
 
@@ -58,15 +81,17 @@ def cut_words(data_filepath, stopwords):
 
         # 去除特殊字符串
         text = clean_text(text)
+        # 加载自定义词典
+        jieba.load_userdict(userdict_filepath)
         # 分词
         seg_list = jieba.cut(text, cut_all=False)
 
         # 去除停用词，并用一个空格分隔词
         for word in seg_list:
+            # 判断是否是停用词
             if word not in stopwords and word != '\n':
-                outstr += word
-                outstr += ' '
-
+                # 判断同义词
+                outstr += synonyms_dict.get(word, word) + ' '
     return outstr
 
 
@@ -122,11 +147,17 @@ def cut_word_and_wordcloud(data_filepath, cut_words_filepath, word_dict_filepath
     wcfont_path = './fonts/SimFang.ttf'
     # 停用词路径
     stopwords_filepath = './stopword.txt'
+    # 自定义词典
+    userdict_filepath = './userdict.txt'
+    # 同义词表
+    synonyms_filepath = './synonym_dict.txt'
 
     # 加载停用词
     stopwords = load_stopwords(stopwords_filepath)
+    # 加载同义词表
+    synonyms_dict= load_synonyms_dict(synonyms_filepath)
     # 分词
-    text = cut_words(data_filepath, stopwords)
+    text = cut_words(data_filepath, stopwords, synonyms_dict, userdict_filepath)
     # 去除标点符号
     write_data(cut_words_filepath, text)
     # 统计词频
@@ -157,9 +188,9 @@ def multi_wordcloud():
             # 分类子目录-数据集文件名
             data_filepath = root_dir + os.sep + afile
             # 分词子目录-分词文件名
-            cut_words_filepath = cut_words_dir + os.sep + match.group(0) + '.txt'
+            cut_words_filepath = cut_words_dir + os.sep + 'cut_words' + match.group(0) + '.txt'
             # 词频
-            word_dict_filepath = cut_words_dir + os.sep + match.group(0) + '.json'
+            word_dict_filepath = cut_words_dir + os.sep + 'wordcount' + match.group(0) + '.json'
             # 词云子目录-词云图文件名
             wc_image_filepath = wc_image_dir + os.sep + match.group(0) + '.jpg'
 
